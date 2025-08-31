@@ -1,12 +1,12 @@
-import axios from 'axios';
-window.axios = axios;
-
-window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
-
                                                         
                                                                                                                         
-import '../sass/app.scss';
-import * as bootstrap from 'bootstrap';
+// Body
+$body-bg: #f8fafc;
+
+// Typography
+$font-family-sans-serif: 'Nunito', sans-serif;
+$font-size-base: 0.9rem;
+$line-height-base: 1.6;
 
                                                         
                                                     

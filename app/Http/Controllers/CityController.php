@@ -6,12 +6,42 @@ use App\Models\City;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCityRequest;
 use App\Http\Requests\UpdateCityRequest;
+use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Log;
 
 class CityController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
+
+    //funzione per avviare la chiamata alla app di geocoding dopo la ricerca di città per l'utente 
+
+    public function getCityData($name, $country)
+    {
+        // Create a new Guzzle client instance
+        $client = new Client();
+
+        // API endpoint URL with your desired location and units (e.g., London, Metric units)
+        $apiUrl = "https://geocoding-api.open-meteo.com/v1/search?name=Berlin&count=10&language=it&format=json";
+
+        try {
+            // Make a GET request to the OpenWeather API
+            $response = $client->get($apiUrl);
+
+            // Get the response body as an array
+            $data = json_decode($response->getBody(), true);
+
+            // Handle the retrieved weather data as needed (e.g., pass it to a view)
+            return view('weather', ['weatherData' => $data]);
+        } catch (\Exception $e) {
+            // Handle any errors that occur during the API request
+            return view('api_error', ['error' => $e->getMessage()]);
+        }
+    }
+
+    //funzione per avviare la chiamata alla app di geocoding dopo la ricerca di città per l'utente 
+
     public function index()
     {
         //

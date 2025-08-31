@@ -11,9 +11,15 @@ class weatherData extends Model
     /** @use HasFactory<\Database\Factories\WeatherDataFactory> */
     use HasFactory;
 
-        public function city(): BelongsTo
+    protected $fillable = [
+        'id',
+        'start_date',
+        'end_date',
+        'temperature',
+    ];
+
+    public function city(): BelongsTo
     {
         return $this->belongsTo(City::class);
     }
-
 }

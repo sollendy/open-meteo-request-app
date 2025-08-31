@@ -11,6 +11,13 @@ class City extends Model
     /** @use HasFactory<\Database\Factories\CityFactory> */
     use HasFactory;
 
+    protected $fillable = [
+        'id',
+        'name',
+        'latitude',
+        'longitude',
+    ];
+
     public function weatherData(): HasMany
     {
         return $this->hasMany(weatherData::class);
