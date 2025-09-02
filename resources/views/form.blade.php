@@ -1,3 +1,12 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Open Meteo App</title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+</head>
+
 <div class="form-cnt m-auto w-50 h-50 pt-5">
   <form action="GET" id="form-openmeteo">
     <div class="mb-3">
@@ -28,6 +37,7 @@
   const citySuggestions = document.getElementById("city-suggestions");
   const meteoCnt = document.getElementById("meteo-cnt");
   let selectedCityName;
+  let selectedCityCountry;
   let selectedCityLat;
   let selectedCityLon;
   let selectedCityId;
@@ -80,6 +90,7 @@
         html += `
           <li class="list-group-item list-group-item-action" 
             data-name="${city.name}" 
+            data-country="${city.country}"
             data-latitude="${city.latitude}" 
             data-longitude="${city.longitude}">
             <strong">${city.name},</strong> <small> ${city.country}, ${city.admin1}</small>
@@ -93,8 +104,9 @@
       document.querySelectorAll(".list-group-item").forEach(element => {
         element.addEventListener("click", () => {
 
-          selectedCityName = element.dataset.id;
+          selectedCityId = element.dataset.id;
           selectedCityName = element.dataset.name;
+          selectedCityCountry = element.dataset.country;
           selectedCityLat = element.dataset.latitude;
           selectedCityLon = element.dataset.longitude;
           fillCity(element.dataset.name);
@@ -108,39 +120,73 @@
     }
   };
 
-
   function fillCity(cityName) {
     cityInput.value = cityName;
     citySuggestions.innerHTML = "";
   }
 
-  async function callForMeteo(cityLat, cityLon, startDate, endDate) {
-    const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${encodeURIComponent(cityLat)}&longitude=${encodeURIComponent(cityLon)}&start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}&hourly=temperature_2m`;
-  
-    try {
-      const response = await fetch(url);
+  // async function callForMeteo(cityLat, cityLon, startDate, endDate) {
+  //   const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${encodeURIComponent(cityLat)}&longitude=${encodeURIComponent(cityLon)}&start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}&hourly=temperature_2m`;
 
-      if (!response.ok) {
-        throw new Error(`Errore nella richiesta: ${response.status}`);
-      }
+  //   try {
+  //     const response = await fetch(url);
+
+  //     if (!response.ok) {
+  //       throw new Error(`Errore nella richiesta: ${response.status}`);
+  //     }
+
+  //     const result = await response.json();
+  //     console.log("Anteprima del meteo: ", result);
+
+  //     if (!result.results || result.results.length === 0) {
+  //       // console.error("Nessun dato disponibile");
+  //       meteoCnt.innerHTML = `
+  //         <b class="text-danger">Nessun dato disponibile</b>
+  //       `;
+  //       return;
+  //     }
+  //   } catch (error) {
+  //     // console.error("Errore", error.message)
+  //     meteoCnt.innerHTML = `
+  //         <b class="text-danger">${error.message}</b>
+  //       `;
+  //   }
+  // }
+
+  async function callForMeteo(cityLat, cityLon, startDate, endDate) {
+    const payload = {
+      name: selectedCityName,
+      country: selectedCityCountry,
+      latitude: cityLat,
+      longitude: cityLon,
+      start_date: startDate,
+      end_date: endDate
+    };
+
+    try {
+      const response = await fetch("/weather-data/store", {
+        method: "POST",
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify(payload)
+      });
 
       const result = await response.json();
-      console.log("Anteprima del meteo: ", result);
+      console.log(result);
 
-      if (!result.results || result.results.length === 0) {
-        // console.error("Nessun dato disponibile");
-        meteoCnt.innerHTML = `
-          <b class="text-danger">Nessun dato disponibile</b>
-        `;
-        return;
+      if (response.ok) {
+        meteoCnt.innerHTML = `<b class="text-success">Dati salvati con successo!</b>`;
+      } else {
+        meteoCnt.innerHTML = `<b class="text-danger">${result.error || "Errore salvataggio"}</b>`;
       }
     } catch (error) {
-      // console.error("Errore", error.message)
-      meteoCnt.innerHTML = `
-          <b class="text-danger">${error.message}</b>
-        `;
+      meteoCnt.innerHTML = `<b class="text-danger">${error.message}</b>`;
     }
-  }
+  };
+
 
   document.addEventListener("click", (e) => {
     if (!cityInput.contains(e.target) && !citySuggestions.contains(e.target)) {
@@ -156,4 +202,4 @@
     await callForMeteo(selectedCityLat, selectedCityLon, startDate, endDate);
   });
 </script>
-@vite(['resources/js/app.js'])
+<!-- @vite(['resources/js/app.js']) -->
