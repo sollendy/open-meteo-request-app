@@ -9,3 +9,5 @@ Route::get('/', function () {
 Route::get('/form-meteo', function () {
     return view('form');
 });
+
+// Route::post("")

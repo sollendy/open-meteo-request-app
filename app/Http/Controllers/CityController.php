@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCityRequest;
 use App\Http\Requests\UpdateCityRequest;
 use GuzzleHttp\Client;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class CityController extends Controller
@@ -60,7 +61,32 @@ class CityController extends Controller
      */
     public function store(StoreCityRequest $request)
     {
-        //
+        $validated = $request->validate([
+            "name" => "required|string",
+            "latitude" => "required|numeric",
+            "longitude" => "required|numeric",
+        ]);
+
+        $name = $validated["name"];
+        $latitude = $validated["latitude"];
+        $longitude = $validated["longitude"];
+
+        $cittaEsiste = DB::selectOne(
+            "SELECT * FROM cities WHERE name = ? AND latitude = ? AND longitude = ? LIMIT 1",
+            [$name, $latitude, $longitude]
+        );
+
+        if ($cittaEsiste) {
+            return response()->json([
+                "city" => $cittaEsiste,
+                "message" => "ritorno la città già presente"
+            ]);
+        }
+
+        $insertCity = DB::insert(
+            "INSERT INTO cities (name, latitude, longitude) VALUES (?, ?, ?)",
+            [$name, $latitude, $longitude]
+        );
     }
 
     /**
