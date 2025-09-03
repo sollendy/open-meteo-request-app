@@ -18,7 +18,9 @@ return new class extends Migration
             $table->foreign('city_id')->references('id')->on('cities');
             $table->date("start_date");
             $table->date("end_date");
-            $table->float("temperature");
+            $table->float("avg_temperature");
+            $table->float("max_temperature");
+            $table->float("min_temperature");
 
             $table->timestamps();
         });

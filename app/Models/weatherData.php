@@ -15,7 +15,9 @@ class weatherData extends Model
         'id',
         'start_date',
         'end_date',
-        'temperature',
+        'avg_temperature',
+        'max_temperature',
+        'min_temperature',
     ];
 
     public function city(): BelongsTo

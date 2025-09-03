@@ -8,6 +8,7 @@ use App\Http\Requests\StoreweatherDataRequest;
 use App\Http\Requests\UpdateweatherDataRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Request;
 
 class WeatherDataController extends Controller
@@ -80,29 +81,32 @@ class WeatherDataController extends Controller
         }
 
         $data = $response->json();
+        var_dump($data);
+        Log::info("la tua response: ", $data);
         $timestamps = $data['hourly']['time'] ?? [];
         $temperatures = $data['hourly']['temperature_2m'] ?? [];
 
-        if (count($timestamps) !== count($temperatures)) {
-            return response()->json(['error' => 'Dati meteo incompleti'], 400);
-        }
+        $minTemperature = min($data);
+        // if (count($timestamps) !== count($temperatures)) {
+        //     return response()->json(['error' => 'Dati meteo incompleti'], 400);
+        // }
 
-        foreach ($timestamps as $index => $timestamp) {
-            $date = substr($timestamp, 0, 10);
-            $temp = $temperatures[$index];
+        // foreach ($timestamps as $index => $timestamp) {
+        //     $date = substr($timestamp, 0, 10);
+        //     $temp = $temperatures[$index];
 
-            $wdEsistono = DB::selectOne(
-                "SELECT id FROM weather_data WHERE city_id = ? AND start_date = ? AND end_date = ? LIMIT 1",
-                [$city->id, $date, $date]
-            );
+        //     $wdEsistono = DB::selectOne(
+        //         "SELECT id FROM weather_data WHERE city_id = ? AND start_date = ? AND end_date = ? LIMIT 1",
+        //         [$city->id, $date, $date]
+        //     );
 
-            if (!$wdEsistono) {
-                DB::insert(
-                    "INSERT INTO weather_data (city_id, start_date, end_date, temperature, created_at, updated_at) VALUES (?, ?, ?, ?, NOW(), NOW())",
-                    [$city->id, $date, $date, $temp]
-                );
-            }
-        }
+        //     if (!$wdEsistono) {
+        //         DB::insert(
+        //             "INSERT INTO weather_data (city_id, start_date, end_date, temperature, created_at, updated_at) VALUES (?, ?, ?, ?, NOW(), NOW())",
+        //             [$city->id, $date, $date, $temp]
+        //         );
+        //     }
+        // }
 
         return response()->json(['message' => 'Operazione ben riuscita']);
     }
