@@ -86,7 +86,16 @@ class WeatherDataController extends Controller
         $timestamps = $data['hourly']['time'] ?? [];
         $temperatures = $data['hourly']['temperature_2m'] ?? [];
 
-        $minTemperature = min($data);
+        $avgTemperature = 0;
+        if (count($data["temperature_2m"]) > 0) {
+            $avgTemperature = array_sum($data["temperature_2m"]) / count($data["temperature_2m"]);
+        } else {
+            $avgTemperature = 0;
+        };
+        
+        $minTemperature = min($data["temperature_2m"]);
+        $maxTemperature = max($data["temperature_2m"]);
+
         // if (count($timestamps) !== count($temperatures)) {
         //     return response()->json(['error' => 'Dati meteo incompleti'], 400);
         // }
