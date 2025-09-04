@@ -13,8 +13,8 @@ class weatherData extends Model
 
     protected $fillable = [
         'id',
-        'start_date',
-        'end_date',
+        'city_id',
+        'avg_temperature_date',
         'avg_temperature',
         'max_temperature',
         'min_temperature',

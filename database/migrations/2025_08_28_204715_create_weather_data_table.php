@@ -14,10 +14,8 @@ return new class extends Migration
         Schema::create('weather_data', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('city_id');
-
             $table->foreign('city_id')->references('id')->on('cities');
-            $table->date("start_date");
-            $table->date("end_date");
+            $table->date("avg_temperature_date");
             $table->float("avg_temperature");
             $table->float("max_temperature");
             $table->float("min_temperature");
