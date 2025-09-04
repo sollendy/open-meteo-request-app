@@ -12,4 +12,5 @@ Route::get('/form-meteo', function () {
 });
 
 Route::post('/weather-data/store', [WeatherDataController::class, 'store']);
+
 Route::get('/cities/{id}/weather-data/aggregadati', [WeatherDataController::class, 'aggregaDati']);

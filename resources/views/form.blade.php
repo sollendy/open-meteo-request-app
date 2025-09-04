@@ -32,12 +32,14 @@
     </form>
   </div>
 
-  <!-- Box per visualizzare i dati meteo -->
   <div class="w-75 border border-1 m-auto p-5 mt-5" id="meteo-cnt">
-    <h4>Statistiche Meteo</h4>
+    <h4 class="city-title"></h4>
     <p id="meteo-status"></p>
     <div id="temperature-box" style="display: none;">
       <div id="temperature-table-container"></div>
+
+      <div id="avg-box" class="mt-4 p-3 border border-2" style="display: none;">
+      </div>
     </div>
   </div>
 
@@ -95,6 +97,7 @@
           let city = result.results[i];
           html += `
                         <li class="list-group-item list-group-item-action"
+                            data-id="${city.id}"
                             data-name="${city.name}"
                             data-country="${city.country}"
                             data-latitude="${city.latitude}"
@@ -128,8 +131,10 @@
       citySuggestions.innerHTML = "";
     }
 
-    async function callForMeteo(cityLat, cityLon, startDate, endDate) {
+    //funzione che richiama i dati meteo SENZA mostrarli
+    async function callForMeteo(cityId, cityLat, cityLon, startDate, endDate) {
       const payload = {
+        cityId: cityId,
         name: selectedCityName,
         country: selectedCityCountry,
         latitude: cityLat,
@@ -154,6 +159,10 @@
         if (response.ok) {
           meteoStatus.innerHTML = `<b class="text-success">Dati salvati con successo!</b>`;
           showTemperatureData(result);
+
+          //chiamo la funzione che serve a mostrare i dati ottenuti
+          await fetchAggregatedTemperature(cityId, startDate, endDate);
+
         } else {
           meteoStatus.innerHTML = `<b class="text-danger">${result.error || "Errore salvataggio"}</b>`;
         }
@@ -163,12 +172,37 @@
       }
     }
 
+    // Con questa chiamo solo i dati aggregati senza mostrarli
+    async function fetchAggregatedTemperature(cityId, from, to) {
+      try {
+        const response = await fetch(`/cities/${cityId}/weather-data/aggregadati/?from=${from}&to=${to}`, {
+          headers: {
+            "Accept": "application/json"
+          }
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          //anche qui richiamo la funzione per mostrare i dati ottenuti con la chiamata
+          showAggregatedTemperature(data);
+        } else {
+          meteoStatus.innerHTML += `<br><b class="text-warning">${data.message || "Nessun dato aggregato trovato."}</b>`;
+        }
+
+      } catch (error) {
+        console.error("Errore nella richiesta aggregata:", error.message);
+        meteoStatus.innerHTML += `<br><b class="text-danger">Errore nel recupero dei dati aggregati</b>`;
+      }
+    }
+
     function showTemperatureData(result) {
+      const cityTitle = document.querySelector(".city-title");
       const temperatureBox = document.getElementById("temperature-box");
       const tableContainer = document.getElementById("temperature-table-container");
 
-      // Pulisci eventuale contenuto precedente
       tableContainer.innerHTML = "";
+      cityTitle.textContent = "";
 
       const dataArray = result.data;
 
@@ -180,10 +214,11 @@
 
       const cityName = dataArray[0].city_name || "Sconosciuta";
 
-      // Crea la tabella
-      const table = document.createElement("table");
+      cityTitle.textContent = cityName;
 
+      const table = document.createElement("table");
       table.className = "table table-bordered";
+
       // Intestazione
       const thead = document.createElement("thead");
       const headerRow = document.createElement("tr");
@@ -224,17 +259,45 @@
       table.appendChild(tbody);
       tableContainer.appendChild(table);
 
-      // Mostra il box
       temperatureBox.style.display = "block";
     }
 
+    function showAggregatedTemperature(data) {
+      const avgBox = document.getElementById("avg-box");
 
+      avgBox.innerHTML = "";
+
+      const container = document.createElement("div");
+      container.className = "avg-temperature-box border rounded p-3 bg-light";
+
+      const heading = document.createElement("h5");
+      heading.textContent = `Dati aggregati per ${data.city} (${data.period})`;
+
+      const avgParagraph = document.createElement("p");
+      avgParagraph.innerHTML = `<strong>Media:</strong> ${data.temperature.avg} °C`;
+
+      const minParagraph = document.createElement("p");
+      minParagraph.innerHTML = `<strong>Minima:</strong> ${data.temperature.min} °C`;
+
+      const maxParagraph = document.createElement("p");
+      maxParagraph.innerHTML = `<strong>Massima:</strong> ${data.temperature.max} °C`;
+
+      container.appendChild(heading);
+      container.appendChild(avgParagraph);
+      container.appendChild(minParagraph);
+      container.appendChild(maxParagraph);
+
+      avgBox.appendChild(container);
+      avgBox.style.display = "block";
+    }
+
+    
     document.getElementById("form-openmeteo").addEventListener("submit", async function(e) {
       e.preventDefault();
       startDate = document.getElementById("start-date-input").value;
       endDate = document.getElementById("end-date-input").value;
 
-      await callForMeteo(selectedCityLat, selectedCityLon, startDate, endDate);
+      await callForMeteo(selectedCityId, selectedCityLat, selectedCityLon, startDate, endDate);
     });
   </script>
 </body>

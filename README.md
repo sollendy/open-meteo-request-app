@@ -1,61 +1,179 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Weather History Dashboard
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Descrizione
+Applicazione Laravel che permette di cercare una città, scaricare i dati storici delle temperature orarie da Open-Meteo e visualizzarli in tabella e in forma aggregata. L'applicazione salva i dati nel database per un successivo riutilizzo e calcola automaticamente le statistiche giornaliere (min, max, media) e quelle aggregate per il periodo selezionato.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Funzionalità implementate
+- [x] Ricerca città tramite API Open-Meteo Geocoding
+- [x] Salvataggio città nel database
+- [x] Download dati storici temperatura (Archive API)
+- [x] Salvataggio dati storici nel database (in forma aggregata giornaliera)
+- [x] API interne per restituzione statistiche aggregate
+- [x] Frontend con tabella dati e box statistiche
+**Extra:**
+- [ ] Cache locale dei dati
+- [ ] Grafico delle temperature (es. Chart.js)
+- [ ] Seed iniziale con città predefinite
+- [ ] Test unitari
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Struttura del codice
 
-## Learning Laravel
+### Controller
+- **`WeatherDataController`**: Gestisce tutte le operazioni principali:
+  - `store()`: Salva i dati meteo per una città e un intervallo di date
+  - `aggregaDati()`: Calcola e restituisce le statistiche aggregate
+  - Implementa la logica per il salvataggio delle città e l'elaborazione dei dati meteo
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### Service
+- La logica di chiamata alle API esterne è gestita direttamente nel controller (per semplicità del progetto)
+- Funzioni ausiliarie come `insertWeatherData()` per il salvataggio dei dati elaborati
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### Model e relazioni
+- **`City`**: Rappresenta una città con:
+  ```php
+  public function weatherData(): HasMany { ... }
+  ```
+- **`WeatherData`**: Rappresenta i dati meteo giornalieri con:
+  ```php
+  public function city(): BelongsTo { ... }
+  ```
+- Relazione one-to-many tra città e dati meteo
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### View Blade
+- **`form.blade.php`**: Interfaccia utente completa con:
+  - Ricerca città con autocompletamento
+  - Selezione date di inizio/fine
+  - Tabella dati giornalieri
+  - Box statistiche aggregate
+  - Gestione errori in tempo reale
 
-## Laravel Sponsors
+### Database
+- **`cities` table**: 
+  - id, name, country, latitude, longitude
+- **`weather_data` table**:
+  - city_id (foreign key)
+  - avg_temperature_date (data giornaliera)
+  - avg_temperature, max_temperature, min_temperature
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+---
 
-### Premium Partners
+## Scelte tecniche
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### Gestione degli errori
+- **Validazione robusta**:
+  ```php
+  $request->validate([
+      'cityId' => 'required|integer',
+      'start_date' => 'required|date',
+      'end_date' => 'required|date|after_or_equal:start_date'
+  ]);
+  ```
+- **Gestione API esterne**:
+  ```php
+  if (!$response->ok()) {
+      return response()->json([
+          'error' => 'Errore nella chiamata all\'API Open Meteo.',
+          'status_code' => $response->status()
+      ], $response->status());
+  }
+  ```
+- **Logging degli errori**:
+  ```php
+  Log::error("Errore nel salvataggio dati meteo: " . $e->getMessage());
+  ```
 
-## Contributing
+### Calcolo delle statistiche aggregate
+1. **Giornaliere**:
+   - Raggruppamento per data dei dati orari
+   - Calcolo min/max/avg per ogni giorno
+   - Salvataggio in database come singolo record giornaliero
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+2. **Per periodo**:
+   ```sql
+   SELECT 
+       AVG(avg_temperature) as avg,
+       MIN(min_temperature) as min,
+       MAX(max_temperature) as max
+   FROM weather_data
+   WHERE city_id = ? AND avg_temperature_date BETWEEN ? AND ?
+   ```
+   - Media globale delle temperature medie giornaliere
+   - Minima assoluta tra tutte le minime giornaliere
+   - Massima assoluta tra tutte le massime giornaliere
 
-## Code of Conduct
+### Ottimizzazioni
+- **Elaborazione lato server**:
+  - I dati orari (fino a 24 valori/giorno) vengono aggregati a livello server
+  - Riduzione del traffico dati tra backend e frontend
+  - Memorizzazione ottimizzata (1 record/giorno invece di 24)
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+- **Validazione frontend/backend**:
+  ```javascript
+  // Frontend validation
+  document.getElementById("form-openmeteo").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      // ... validation logic
+  });
+  ```
+  ```php
+  // Backend validation
+  'end_date' => 'required|date|after_or_equal:start_date'
+  ```
 
-## Security Vulnerabilities
+- **Debouncing ricerca città**:
+  ```javascript
+  cityInput.addEventListener("input", () => {
+      clearTimeout(debounceTimeout);
+      debounceTimeout = setTimeout(loadCities, 300);
+  });
+  ```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### Note importanti
+- **Approccio ibrido Eloquent/Raw Queries**:
+  - Utilizzo di query raw per operazioni complesse di aggregazione
+  - Mantenimento delle relazioni Eloquent per semplicità
+  - Esempio di query raw ottimizzata:
+    ```php
+    DB::selectOne(
+        "SELECT * FROM cities WHERE name = ? AND country = ? ...",
+        [$cityName, $country, ...]
+    );
+    ```
 
-## License
+- **Frontend leggero**:
+  - JavaScript vanilla senza framework esterni
+  - Integrazione diretta con le API Laravel
+  - Gestione dinamica della UI senza ricaricamenti di pagina
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- **Precisione numerica**:
+  ```php
+  'avg' => round($value->avg_temperature, 1)
+  ```
+  - Arrotondamento a 1 cifra decimale per migliorare la leggibilità
+
+---
+
+## Utilizzo
+1. Avviare il server Laravel con `php artisan serve`
+2. Aprire il browser all'indirizzo `http://localhost:8000`
+3. Inserire il nome di una città nel campo di ricerca
+4. Selezionare le date di inizio e fine
+5. Cliccare su "Submit" per visualizzare i dati
+
+L'applicazione mostrerà:
+- Tabella con dati giornalieri (data, media, min, max)
+- Box con statistiche aggregate per il periodo selezionato
+- Feedback in tempo reale per errori di validazione o problemi API
+
+---
+
+## Possibili miglioramenti
+1. Implementare cache locale per ridurre le chiamate API
+2. Aggiungere grafici interattivi con Chart.js
+3. Creare seed con città predefinite
+4. Implementare test unitari per le funzionalità critiche
+5. Ottimizzare ulteriormente il salvataggio con batch inserts
