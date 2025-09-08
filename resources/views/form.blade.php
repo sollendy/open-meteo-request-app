@@ -14,22 +14,22 @@
     <h1 class="text-center titolo">Open Meteo App</h1>
     <form action="GET" id="form-openmeteo">
       <div class="mb-3">
-        <label for="exampleInputEmail1" class="form-label">Inserisci la città.</label>
+        <label for="exampleInputEmail1" class="form-label">Type your city.</label>
         <input type="text" class="form-control city-input" id="city-input" aria-describedby="textHelp">
         <ul id="city-suggestions" class="form-text"></ul>
       </div>
 
       <div class="mb-3">
-        <label for="dataInizio" class="form-label">Data di Inizio</label>
+        <label for="dataInizio" class="form-label">Start date</label>
         <input type="date" class="form-control" id="start-date-input" required>
       </div>
 
       <div class="mb-3">
-        <label for="dataFine" class="form-label">Data di Fine</label>
+        <label for="dataFine" class="form-label">End date</label>
         <input type="date" class="form-control" id="end-date-input" required>
       </div>
 
-      <button type="submit" class="btn btn-primary">Conferma</button>
+      <button type="submit" class="btn btn-primary">Submit</button>
     </form>
   </div>
 
@@ -72,7 +72,7 @@
       const cityName = cityInput.value.trim();
 
       if (!cityName) {
-        citySuggestions.innerHTML = `<b class="text-danger">Nessun nome di città inserito</b>`;
+        citySuggestions.innerHTML = `<b class="text-danger">No city name typed</b>`;
         return;
       }
 
@@ -82,13 +82,13 @@
         const response = await fetch(url);
 
         if (!response.ok) {
-          throw new Error(`Errore nella richiesta: ${response.status}`);
+          throw new Error(`Error in request: ${response.status}`);
         }
 
         const result = await response.json();
 
         if (!result.results || result.results.length === 0) {
-          citySuggestions.innerHTML = `<b class="text-danger">Nessuna città trovata</b>`;
+          citySuggestions.innerHTML = `<b class="text-danger">City not found</b>`;
           return;
         }
 
@@ -158,14 +158,18 @@
         const result = await response.json();
 
         if (response.ok) {
-          meteoStatus.innerHTML = `<b class="text-success">Dati salvati con successo!</b>`;
+          meteoStatus.innerHTML = `<b class="text-success">Data saved successfully!</b>`;
           showTemperatureData(result);
 
           //chiamo la funzione che serve a mostrare i dati ottenuti
           await fetchAggregatedTemperature(cityId, startDate, endDate);
 
         } else {
-          meteoStatus.innerHTML = `<b class="text-danger">${result.error || "Errore salvataggio"}</b>`;
+
+
+          handleValidationErrors(result.errors);
+
+          meteoStatus.innerHTML = `<b class="text-danger">${result.message || "Error in saving data"}</b>`;
         }
 
       } catch (error) {
@@ -176,7 +180,7 @@
     // Con questa chiamo solo i dati aggregati senza mostrarli
     async function fetchAggregatedTemperature(cityId, from, to) {
       try {
-        const response = await fetch(`/cities/${cityId}/weather-data/aggregadati/?from=${from}&to=${to}`, {
+        const response = await fetch(`/cities/${cityId}/weather-data/data-aggregation/?from=${from}&to=${to}`, {
           headers: {
             "Accept": "application/json"
           }
@@ -188,12 +192,12 @@
           //anche qui richiamo la funzione per mostrare i dati ottenuti con la chiamata
           showAggregatedTemperature(data);
         } else {
-          meteoStatus.innerHTML += `<br><b class="text-warning">${data.message || "Nessun dato aggregato trovato."}</b>`;
+          meteoStatus.innerHTML += `<br><b class="text-warning">${data.message || "Aggregated data not found."}</b>`;
         }
 
       } catch (error) {
-        console.error("Errore nella richiesta aggregata:", error.message);
-        meteoStatus.innerHTML += `<br><b class="text-danger">Errore nel recupero dei dati aggregati</b>`;
+        console.error("Error in aggregated request:", error.message);
+        meteoStatus.innerHTML += `<br><b class="text-danger">Error in recovering data</b>`;
       }
     }
 
@@ -208,12 +212,12 @@
       const dataArray = result.data;
 
       if (!Array.isArray(dataArray) || dataArray.length === 0) {
-        tableContainer.textContent = "Nessun dato disponibile.";
+        tableContainer.textContent = "No data available.";
         temperatureBox.style.display = "block";
         return;
       }
 
-      const cityName = dataArray[0].city_name || "Sconosciuta";
+      const cityName = dataArray[0].city_name || "Unknown";
 
       cityTitle.textContent = cityName;
 
@@ -223,7 +227,7 @@
       // Intestazione
       const thead = document.createElement("thead");
       const headerRow = document.createElement("tr");
-      ["Data", "Media (°C)", "Min (°C)", "Max (°C)"].forEach(header => {
+      ["Date", "Avg (°C)", "Min (°C)", "Max (°C)"].forEach(header => {
         const th = document.createElement("th");
         th.textContent = header;
         headerRow.appendChild(th);
@@ -272,16 +276,16 @@
       container.className = "avg-temperature-box border rounded p-3 bg-light";
 
       const heading = document.createElement("h5");
-      heading.textContent = `Dati aggregati per ${data.city} (${data.period})`;
+      heading.textContent = `Aggregated data for ${data.city} (${data.period})`;
 
       const avgParagraph = document.createElement("p");
-      avgParagraph.innerHTML = `<strong>Media:</strong> ${data.temperature.avg} °C`;
+      avgParagraph.innerHTML = `<strong>Average:</strong> ${data.temperature.avg} °C`;
 
       const minParagraph = document.createElement("p");
-      minParagraph.innerHTML = `<strong>Minima:</strong> ${data.temperature.min} °C`;
+      minParagraph.innerHTML = `<strong>Minimum:</strong> ${data.temperature.min} °C`;
 
       const maxParagraph = document.createElement("p");
-      maxParagraph.innerHTML = `<strong>Massima:</strong> ${data.temperature.max} °C`;
+      maxParagraph.innerHTML = `<strong>Maximum:</strong> ${data.temperature.max} °C`;
 
       container.appendChild(heading);
       container.appendChild(avgParagraph);
@@ -292,11 +296,60 @@
       avgBox.style.display = "block";
     }
 
-    
+    function handleValidationErrors(errors) {
+
+      const startDateInput = document.getElementById("start-date-input");
+      const endDateInput = document.getElementById("end-date-input");
+
+      if (errors && errors.start_date) {
+        const errorLabel = document.createElement("label");
+        errorLabel.id = "start-date-error";
+        errorLabel.className = "text-danger";
+        errorLabel.textContent = Array.isArray(errors.start_date) ? errors.start_date[0] : errors.start_date;
+        startDateInput.insertAdjacentElement("afterend", errorLabel);
+
+        setTimeout(() => {
+          errorLabel.remove();
+        }, 5000);
+      }
+
+      if (errors && errors.end_date) {
+        const errorLabel = document.createElement("label");
+        errorLabel.id = "end-date-error";
+        errorLabel.className = "text-danger";
+        errorLabel.textContent = Array.isArray(errors.end_date) ? errors.end_date[0] : errors.end_date;
+        endDateInput.insertAdjacentElement("afterend", errorLabel);
+
+        setTimeout(() => {
+          errorLabel.remove();
+        }, 5000);
+      }
+    }
+
+    const isValidDate = (inputDate) => {
+      const date = new Date(inputDate);
+      return !isNaN(date.getTime());
+    }
+
     document.getElementById("form-openmeteo").addEventListener("submit", async function(e) {
       e.preventDefault();
       startDate = document.getElementById("start-date-input").value;
       endDate = document.getElementById("end-date-input").value;
+
+      let errors = {};
+
+      if (!startDate || !isValidDate(startDate)) {
+        errors.start_date = "Invalid start date.";
+      }
+
+      if (!endDate || !isValidDate(endDate)) {
+        errors.end_date = "Invalid end date.";
+      }
+
+      if (Object.keys(errors).length > 0) {
+        handleValidationErrors(errors);
+        return; // esci, non chiami callForMeteo
+      }
 
       await callForMeteo(selectedCityId, selectedCityLat, selectedCityLon, startDate, endDate);
     });
