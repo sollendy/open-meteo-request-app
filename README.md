@@ -23,18 +23,18 @@ Applicazione Laravel che permette di cercare una città, scaricare i dati storic
   - `aggregaDati()`: Calcola e restituisce le statistiche aggregate
   - Implementa la logica per il salvataggio delle città e l'elaborazione dei dati meteo
 
-### Service
+### Funzionamento
 - La logica di chiamata alle API esterne è gestita direttamente nel controller (per semplicità del progetto)
 - Funzioni ausiliarie come `insertWeatherData()` per il salvataggio dei dati elaborati
 
-### Model e relazioni
+### Modelli e relazioni
 - **`City`**: Rappresenta una città con:
   ```php
-  public function weatherData(): HasMany { ... }
+  public function city(): BelongsTo { ... }
   ```
 - **`WeatherData`**: Rappresenta i dati meteo giornalieri con:
   ```php
-  public function city(): BelongsTo { ... }
+  public function weatherData(): HasMany { ... }
   ```
 - Relazione one-to-many tra città e dati meteo
 
@@ -127,9 +127,9 @@ Applicazione Laravel che permette di cercare una città, scaricare i dati storic
   });
   ```
 
-### Note importanti
-- **Approccio ibrido Eloquent/Raw Queries**:
-  - Utilizzo di query pure per operazioni complesse di aggregazione
+### Note di sviluppo
+- **Approccio ibrido Eloquent/Query pure**:
+  - Utilizzo di query pure per operazioni complesse di aggregazione, scelta fatta vista l'ottima esperienza sperimentata dall'autore
   - Mantenimento delle relazioni Eloquent per semplicità
   - Esempio di query pura ottimizzata:
     ```php
@@ -140,7 +140,7 @@ Applicazione Laravel che permette di cercare una città, scaricare i dati storic
     ```
 
 - **Frontend leggero**:
-  - JavaScript vanilla senza framework esterni
+  - JavaScript puro senza framework esterni
   - Integrazione diretta con le API Laravel
   - Gestione dinamica della UI senza ricaricamenti di pagina
 
