@@ -26,10 +26,10 @@ Open Meteo App è un'applicazione che permette di cercare una città, scaricare 
     -   `aggregaDati()`: Calcola e restituisce le statistiche aggregate
     -   Implementa la logica per il salvataggio delle città e l'elaborazione dei dati meteo
 
-<!-- ### Funzionamento
+### Note di funzionamento
 
--   La logica di chiamata alle API esterne è gestita direttamente nel controller (per semplicità del progetto)
--   Funzioni ausiliarie come `insertWeatherData()` per il salvataggio dei dati elaborati -->
+-   La logica di chiamata alle API "Historical Weather" è gestita direttamente nel controller (per semplicità del progetto)
+-   Funzioni ausiliarie come `insertWeatherData()` per il salvataggio dei dati elaborati
 
 ### Modelli e relazioni
 
@@ -153,8 +153,6 @@ Open Meteo App è un'applicazione che permette di cercare una città, scaricare 
             [$cityName, $country, ...]
         );
         ```
-    -   La logica di chiamata alle API "historical weather" è gestita direttamente nel controller (per semplicità del progetto)
-    -   Funzioni ausiliarie come `insertWeatherData()` per il salvataggio dei dati elaborati
 
 -   **Front-end leggero**:
 
