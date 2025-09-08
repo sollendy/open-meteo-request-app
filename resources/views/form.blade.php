@@ -28,7 +28,7 @@
         <input type="date" class="form-control" id="end-date-input" required>
       </div>
 
-      <button type="submit" class="btn btn-primary">Submit</button>
+      <button type="submit" class="btn btn-primary">Conferma</button>
     </form>
   </div>
 

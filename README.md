@@ -1,4 +1,4 @@
-# Weather History Dashboard
+# Applicativo Open Meteo API
 
 ## Descrizione
 Applicazione Laravel che permette di cercare una città, scaricare i dati storici delle temperature orarie da Open-Meteo e visualizzarli in tabella e in forma aggregata. L'applicazione salva i dati nel database per un successivo riutilizzo e calcola automaticamente le statistiche giornaliere (min, max, media) e quelle aggregate per il periodo selezionato.
@@ -6,17 +6,12 @@ Applicazione Laravel che permette di cercare una città, scaricare i dati storic
 ---
 
 ## Funzionalità implementate
-- [x] Ricerca città tramite API Open-Meteo Geocoding
-- [x] Salvataggio città nel database
-- [x] Download dati storici temperatura (Archive API)
-- [x] Salvataggio dati storici nel database (in forma aggregata giornaliera)
-- [x] API interne per restituzione statistiche aggregate
-- [x] Frontend con tabella dati e box statistiche
-**Extra:**
-- [ ] Cache locale dei dati
-- [ ] Grafico delle temperature (es. Chart.js)
-- [ ] Seed iniziale con città predefinite
-- [ ] Test unitari
+- Ricerca città tramite API Open-Meteo Geocoding
+- Salvataggio città nel database
+- Download dati storici temperatura (Archive API)
+- Salvataggio dati storici nel database (in forma aggregata giornaliera)
+- API interne per restituzione statistiche aggregate
+- Frontend con tabella dati e box statistiche
 
 ---
 
@@ -113,14 +108,14 @@ Applicazione Laravel che permette di cercare una città, scaricare i dati storic
 
 - **Validazione frontend/backend**:
   ```javascript
-  // Frontend validation
+  // Lato Front-end
   document.getElementById("form-openmeteo").addEventListener("submit", async function(e) {
       e.preventDefault();
-      // ... validation logic
+      // ... 
   });
   ```
   ```php
-  // Backend validation
+  // Lato Back-end
   'end_date' => 'required|date|after_or_equal:start_date'
   ```
 
@@ -134,9 +129,9 @@ Applicazione Laravel che permette di cercare una città, scaricare i dati storic
 
 ### Note importanti
 - **Approccio ibrido Eloquent/Raw Queries**:
-  - Utilizzo di query raw per operazioni complesse di aggregazione
+  - Utilizzo di query pure per operazioni complesse di aggregazione
   - Mantenimento delle relazioni Eloquent per semplicità
-  - Esempio di query raw ottimizzata:
+  - Esempio di query pura ottimizzata:
     ```php
     DB::selectOne(
         "SELECT * FROM cities WHERE name = ? AND country = ? ...",
@@ -158,22 +153,11 @@ Applicazione Laravel che permette di cercare una città, scaricare i dati storic
 ---
 
 ## Utilizzo
-1. Avviare il server Laravel con `php artisan serve`
-2. Aprire il browser all'indirizzo `http://localhost:8000`
-3. Inserire il nome di una città nel campo di ricerca
-4. Selezionare le date di inizio e fine
-5. Cliccare su "Submit" per visualizzare i dati
+1. Inserire il nome di una città nel campo di ricerca
+2. Selezionare le date di inizio e fine
+3. Cliccare su "Conferma" per visualizzare i dati
 
 L'applicazione mostrerà:
 - Tabella con dati giornalieri (data, media, min, max)
 - Box con statistiche aggregate per il periodo selezionato
 - Feedback in tempo reale per errori di validazione o problemi API
-
----
-
-## Possibili miglioramenti
-1. Implementare cache locale per ridurre le chiamate API
-2. Aggiungere grafici interattivi con Chart.js
-3. Creare seed con città predefinite
-4. Implementare test unitari per le funzionalità critiche
-5. Ottimizzare ulteriormente il salvataggio con batch inserts
