@@ -26,10 +26,10 @@ Open Meteo App è un'applicazione che permette di cercare una città, scaricare 
     -   `aggregaDati()`: Calcola e restituisce le statistiche aggregate
     -   Implementa la logica per il salvataggio delle città e l'elaborazione dei dati meteo
 
-### Funzionamento
+<!-- ### Funzionamento
 
 -   La logica di chiamata alle API esterne è gestita direttamente nel controller (per semplicità del progetto)
--   Funzioni ausiliarie come `insertWeatherData()` per il salvataggio dei dati elaborati
+-   Funzioni ausiliarie come `insertWeatherData()` per il salvataggio dei dati elaborati -->
 
 ### Modelli e relazioni
 
@@ -106,7 +106,7 @@ Open Meteo App è un'applicazione che permette di cercare una città, scaricare 
 
 -   **Elaborazione lato server**:
 
-    -   I dati orari (fino a 24 valori/giorno) vengono aggregati a livello server, così da ridurre il traffico tra Front-end e Backend
+    -   I dati orari (fino a 24 valori/giorno) vengono aggregati a livello server, così da ridurre il traffico tra Front-end e Back-end
     -   Memorizzazione ottimizzata (1 record/giorno invece di 24)
 
 -   **Validazione Front-end/back-end robusta mediante il metodo nativo di Laravel "validate"**:
@@ -153,8 +153,10 @@ Open Meteo App è un'applicazione che permette di cercare una città, scaricare 
             [$cityName, $country, ...]
         );
         ```
+    -   La logica di chiamata alle API "historical weather" è gestita direttamente nel controller (per semplicità del progetto)
+    -   Funzioni ausiliarie come `insertWeatherData()` per il salvataggio dei dati elaborati
 
--   **Frontend leggero**:
+-   **Front-end leggero**:
 
     -   JavaScript puro senza framework esterni
     -   Integrazione diretta con le API Laravel
