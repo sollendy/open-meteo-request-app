@@ -11,6 +11,7 @@
 
 <body>
   <div class="form-cnt m-auto w-50 h-50 pt-5">
+    <h1 class="text-center titolo">Open Meteo App</h1>
     <form action="GET" id="form-openmeteo">
       <div class="mb-3">
         <label for="exampleInputEmail1" class="form-label">Inserisci la città.</label>
